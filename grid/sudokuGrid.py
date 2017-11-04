@@ -1,9 +1,13 @@
-from .sudokuElement import SudokuElement
+import math
+
+from grid import SudokuElement, SudokuError
 
 
 class SudokuGrid:
     """SudokuGrid represents a 9x9 sudoku grid"""
     GRID_SIZE = 9
+    SUBREGION_SIZE = int(math.sqrt(GRID_SIZE))
+
     _grid = []
 
     def __init__(self, filename=None, str=None):
@@ -20,10 +24,12 @@ class SudokuGrid:
         row_idx = 0
         for grid_row in grid_rows:
             grid_elem = grid_row.split(",")
-            assert(len(grid_elem) == self.GRID_SIZE)
+            assert (len(grid_elem) == self.GRID_SIZE)
 
             for (col_idx, elem) in enumerate(grid_elem):
-                self.set((row_idx, col_idx), elem)
+                if elem.strip() == "":
+                    elem = None
+                self.set(row_idx, col_idx, elem)
             row_idx += 1
 
     def _load_grid_from_file(self, filename):
@@ -32,17 +38,53 @@ class SudokuGrid:
         self._load_grid_from_string(grid_data)
 
     def _load_empty_grid(self):
-        for i in range(self.GRID_SIZE):
-            self._grid.append([SudokuElement()] * self.GRID_SIZE)
+        self._grid = [[SudokuElement()]*self.GRID_SIZE for _ in range(self.GRID_SIZE)]
 
-    def get(self, pos):
-        x, y = pos
-        return self._grid[x][y].val
+    def get(self, col, row):
+        return self._grid[col][row].val
 
-    def set(self, pos, val):
-        assert (val == "" or 1 <= int(val) <= self.GRID_SIZE)
-        x, y = pos
-        self._grid[x][y] = SudokuElement(val)
+    def set(self, col, row, val):
+        assert (val is None or 1 <= int(val) <= self.GRID_SIZE)
+        if not (val is None):
+            self._check_row_constraint(row, val)
+            self._check_col_constraint(col, val)
+            self._check_subregion_constraint(col, row, val)
+        self._grid[col][row] = SudokuElement(val)
+
+    def _check_row_constraint(self, row, val):
+        """Ensures that the passed row does not already contain an element with a value of val"""
+        if val is None:
+            return
+        for col in range(self.GRID_SIZE):
+            if self.get(col, row) == val:
+                raise SudokuError(
+                    "An element of value '{}' already exists at position ({}, {})".format(val, col, row)
+                )
+
+    def _check_col_constraint(self, col, val):
+        """Ensures that the passed column does not already contain an element with a value of val"""
+        if val is None:
+            return
+        for row in range(self.GRID_SIZE):
+            if self.get(col, row) == val:
+                raise SudokuError(
+                    "An element of value '{}' already exists at position ({}, {})".format(val, col, row)
+                )
+
+    def _check_subregion_constraint(self, col, row, val):
+        """Ensures that a value does not exist in the same sub-region as (col, row)"""
+        if val is None:
+            return
+
+        starting_col = (col // self.SUBREGION_SIZE) * self.SUBREGION_SIZE
+        starting_row = (row // self.SUBREGION_SIZE) * self.SUBREGION_SIZE
+
+        for col in range(starting_col, starting_col + self.SUBREGION_SIZE):
+            for row in range(starting_row, starting_row + self.SUBREGION_SIZE):
+                if self.get(col, row) == val:
+                    raise SudokuError(
+                        "An element of value '{}' already exists at position ({}, {})".format(val, col, row)
+                    )
 
     def __str__(self):
         GRID_VERTICAL_SEPARATOR = "-----+-----+-----"
