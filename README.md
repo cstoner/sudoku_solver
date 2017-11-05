@@ -15,6 +15,17 @@ Unit tests can be ran as follows
 
     python -m unittest
 
+Goals of the Project
+====================
+I wanted to try a few things in python that I hadn't really bothered to fiddle with much in the past:
+
+* Python OOP: Normally, I don't bother with OOP python, but this seemed like a good candidate
+* Learn PyCharm: In the past, I'd always just used a simple text editor, like Sublime Text or Atom or something
+  but since I've been using IntelliJ at work, it seemed like PyCharm would be a good fit
+* `unittest` module: I hadn't bothered learning much of the python unit test framework before, so this seemed like
+  a good opportunity. The tests are pretty atrocious and certainly not comprehensive, but they still were invaluable
+  during development
+
 Approach
 ========
 The approach used is not powerful enough to solve all sudoku, but should be capable of solving a good chunk of them.
