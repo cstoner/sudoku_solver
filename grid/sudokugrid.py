@@ -38,53 +38,63 @@ class SudokuGrid:
         self._load_grid_from_string(grid_data)
 
     def _load_empty_grid(self):
-        self._grid = [[SudokuElement()]*self.GRID_SIZE for _ in range(self.GRID_SIZE)]
+        self._grid = []
+        for _ in range(self.GRID_SIZE):
+            row = []
+            for _ in range(self.GRID_SIZE):
+                row.append(SudokuElement(self.GRID_SIZE))
+            self._grid.append(row)
 
     def get(self, col, row):
+        """Returns the value of the node at (col, row)"""
         return self._grid[col][row].val
 
+    def get_valid_numbers(self, col, row):
+        """Returns all of the possible valid numbers that could be entered into (col, row)"""
+        return self._grid[col][row].get_valid_numbers()
+
+    def get_empty_neighbors(self, col, row):
+        """Returns all of the empty nodes in a sub-region, except for the one at (col, row)"""
+        starting_col = (col // self.SUBREGION_SIZE) * self.SUBREGION_SIZE
+        starting_row = (row // self.SUBREGION_SIZE) * self.SUBREGION_SIZE
+        neighbor_list = []
+
+        for new_col in range(starting_col, starting_col + self.SUBREGION_SIZE):
+            for new_row in range(starting_row, starting_row + self.SUBREGION_SIZE):
+                if new_col == col and new_row == row:
+                    continue
+                if self.get(new_col, new_row) is not None:
+                    neighbor_list.append(self._grid[col][row])
+
+        return neighbor_list
+
     def set(self, col, row, val):
-        assert (val is None or 1 <= int(val) <= self.GRID_SIZE)
-        if not (val is None):
-            self._check_row_constraint(row, val)
-            self._check_col_constraint(col, val)
-            self._check_subregion_constraint(col, row, val)
-        self._grid[col][row] = SudokuElement(val)
-
-    def _check_row_constraint(self, row, val):
-        """Ensures that the passed row does not already contain an element with a value of val"""
+        """Sets the item at (col, row) to the specified value"""
         if val is None:
             return
-        for col in range(self.GRID_SIZE):
-            if self.get(col, row) == val:
-                raise SudokuError(
-                    "An element of value '{}' already exists at position ({}, {})".format(val, col, row)
-                )
+        assert (1 <= int(val) <= self.GRID_SIZE)
+        self._check_value_constraint(col, row, val)
+        self._grid[col][row] = SudokuElement(self.GRID_SIZE, val)
+        self._invalidate_number(col, row, val)
 
-    def _check_col_constraint(self, col, val):
-        """Ensures that the passed column does not already contain an element with a value of val"""
+    def _check_value_constraint(self, col, row, val):
+        if int(val) not in self._grid[col][row].get_valid_numbers():
+            raise SudokuError("An element of value '{}' cannot be placed in ({}, {})".format(val, col, row))
+
+    def _invalidate_number(self, col, row, val):
         if val is None:
             return
-        for row in range(self.GRID_SIZE):
-            if self.get(col, row) == val:
-                raise SudokuError(
-                    "An element of value '{}' already exists at position ({}, {})".format(val, col, row)
-                )
 
-    def _check_subregion_constraint(self, col, row, val):
-        """Ensures that a value does not exist in the same sub-region as (col, row)"""
-        if val is None:
-            return
+        # Invalidate this number along the specified row and column
+        for i in range(self.GRID_SIZE):
+            self._grid[i][row].invalidate_number(val)
+            self._grid[col][i].invalidate_number(val)
 
         starting_col = (col // self.SUBREGION_SIZE) * self.SUBREGION_SIZE
         starting_row = (row // self.SUBREGION_SIZE) * self.SUBREGION_SIZE
-
         for col in range(starting_col, starting_col + self.SUBREGION_SIZE):
             for row in range(starting_row, starting_row + self.SUBREGION_SIZE):
-                if self.get(col, row) == val:
-                    raise SudokuError(
-                        "An element of value '{}' already exists at position ({}, {})".format(val, col, row)
-                    )
+                self._grid[col][row].invalidate_number(val)
 
     def __str__(self):
         GRID_VERTICAL_SEPARATOR = "-----+-----+-----"

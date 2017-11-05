@@ -1,3 +1,3 @@
-from .sudokuElement import SudokuElement
-from .sudokuError import SudokuError
-from .sudokuGrid import SudokuGrid
+from .sudokuelement import SudokuElement
+from .sudokuerror import SudokuError
+from .sudokugrid import SudokuGrid

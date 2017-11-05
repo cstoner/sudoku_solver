@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import argparse
-import unittest
 
 from grid import SudokuGrid
+from solver import SudokuSolver
 
 
 def get_parser():
@@ -18,12 +18,12 @@ def get_parser():
 
 
 def main(cli_args):
-    if cli_args.test:
-        unittest.main()
-        return
-
     grid = SudokuGrid(cli_args.file)
-    print(grid)
+    print("Grid input:\n{}\n".format(grid))
+
+    sudoku_solver = SudokuSolver(grid)
+    solved_grid = sudoku_solver.solve()
+    print("Solved grid:\n{}\n".format(solved_grid))
 
 
 if __name__ == '__main__':

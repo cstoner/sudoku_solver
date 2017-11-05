@@ -33,6 +33,10 @@ class TestSudokuGrid(unittest.TestCase):
         grid = SudokuGrid(os.path.join(self.THIS_DIR, self.TEST_RESOURCES_DIR, "single_entry_grid_2.txt"))
         self.assertTrue(grid.get(8, 8) == 1)
 
+    def test_load_easy_sudoku_1(self):
+        grid = SudokuGrid(os.path.join(self.THIS_DIR, self.TEST_RESOURCES_DIR, "easy_sudoku_1.txt"))
+        self.assertEquals(grid.get_valid_numbers(0, 1), {7})
+
     def test_row_constraints(self):
         grid = SudokuGrid()
         grid.set(0, 0, 1)
