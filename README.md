@@ -20,7 +20,10 @@ Approach
 The approach used is not powerful enough to solve all sudoku, but should be capable of solving a good chunk of them.
 
 Essentially, it just keeps track of what numbers are valid for a given sudoku square, and if there is only one
-option available, then it inserts that one. The process is continued until all of the
+option available, then it inserts that one. It will also check to see if a number can only legally be placed in a single
+subregion of the sudoku grid.
+
+The process is continued until all of the squares are filled in.
 
 Improvements
 ============
